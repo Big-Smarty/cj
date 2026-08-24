@@ -145,3 +145,12 @@ Benchmark output includes the backend, device, algorithm, workload parameters, c
 ## Responsible Use
 
 `cj` is intended for authorized password recovery, security testing, and performance research. Only use it with hashes and systems that you own or have explicit permission to test.
+
+## License
+
+Licensed under either of the following licenses, at your option:
+
+- Apache License, Version 2.0
+- MIT License
+
+See `LICENSE-APACHE` and `LICENSE-MIT` for details.
