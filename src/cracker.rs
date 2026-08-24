@@ -3,10 +3,10 @@ use std::ffi::CStr;
 use std::ffi::c_int;
 use std::{collections::BTreeMap, ops::DerefMut};
 
-use crate::{engine::Engine, gpu_id::GpuId, pci_id::PciId};
+use crate::{engine::Engine, gpu_id_set::GpuIdSet, pci_id::PciId};
 
 pub struct Cracker {
-    pub gpu_ids: BTreeMap<PciId, GpuId>,
+    pub gpu_ids: BTreeMap<PciId, GpuIdSet>,
     pub engines: Vec<Engine>,
 }
 
@@ -19,7 +19,7 @@ impl Cracker {
         })
     }
 
-    fn discover() -> BTreeMap<PciId, GpuId> {
+    fn discover() -> BTreeMap<PciId, GpuIdSet> {
         let maps = vec![
             #[cfg(feature = "backend-cuda")]
             Self::list_cuda_devices(),
@@ -31,14 +31,16 @@ impl Cracker {
             Self::list_vulkan_devices(),
         ];
 
-        let mut joined: BTreeMap<PciId, GpuId> = BTreeMap::new();
+        let mut joined: BTreeMap<PciId, GpuIdSet> = BTreeMap::new();
 
         for map in maps
             .iter()
-            .filter_map(|map: &anyhow::Result<BTreeMap<PciId, GpuId>>| map.as_ref().ok())
+            .filter_map(|map: &anyhow::Result<BTreeMap<PciId, GpuIdSet>>| map.as_ref().ok())
         {
             for (pci_id, discovered) in map {
-                let entry = joined.entry(*pci_id).or_insert_with(|| GpuId::new(*pci_id));
+                let entry = joined
+                    .entry(*pci_id)
+                    .or_insert_with(|| GpuIdSet::new(*pci_id));
                 #[cfg(feature = "backend-cuda")]
                 if entry.cuda_ordinal_id.is_none() && discovered.cuda_ordinal_id.is_some() {
                     entry.cuda_ordinal_id = discovered.cuda_ordinal_id;
@@ -61,7 +63,7 @@ impl Cracker {
     }
 
     #[cfg(feature = "backend-cuda")]
-    fn list_cuda_devices() -> anyhow::Result<BTreeMap<PciId, GpuId>> {
+    fn list_cuda_devices() -> anyhow::Result<BTreeMap<PciId, GpuIdSet>> {
         use cudarc::driver::{CudaContext, sys::is_culib_present};
         if !unsafe { is_culib_present() } {
             log::error!("no CUDA libraries found");
@@ -83,7 +85,7 @@ impl Cracker {
             .filter(|(_, id)| id.is_ok())
             .map(|(ordinal, id)| {
                 let id = id.unwrap();
-                let gpu_id = GpuId {
+                let gpu_id = GpuIdSet {
                     cuda_ordinal_id: Some(ordinal),
                     opencl_ordinal_id: None,
                     vulkan_ordinal_id: None,
@@ -95,16 +97,67 @@ impl Cracker {
             .collect())
     }
     #[cfg(feature = "backend-opencl")]
-    fn list_opencl_devices() -> anyhow::Result<BTreeMap<PciId, GpuId>> {
-        todo!()
+    fn list_opencl_devices() -> anyhow::Result<BTreeMap<PciId, GpuIdSet>> {
+        use cl3::{
+            device::{CL_DEVICE_TYPE_GPU, cl_device_pci_bus_info_khr, get_device_pci_bus_info_khr},
+            ext::CL_DEVICE_PCI_BUS_INFO_KHR,
+        };
+        use opencl3::device::Device;
+        use opencl3::platform::get_platforms;
+
+        let platforms = match get_platforms() {
+            Ok(p) => p,
+            Err(e) => {
+                log::error!("Failed to get OpenCL platforms: {e}");
+                return Err(anyhow::Error::msg(format!(
+                    "Failed to get OpenCL platforms: {e}"
+                )));
+            }
+        };
+
+        Ok(platforms
+            .iter()
+            .flat_map(|platform| match platform.get_devices(CL_DEVICE_TYPE_GPU) {
+                Ok(device_ids) => device_ids,
+                Err(e) => {
+                    log::error!("Failed to get OpenCL device IDs: {e}");
+                    Vec::new()
+                }
+            })
+            .filter_map(|device_id| {
+                let device = Device::new(device_id);
+                let data = device.get_data(CL_DEVICE_PCI_BUS_INFO_KHR).ok()?;
+
+                if data.len() != size_of::<cl_device_pci_bus_info_khr>() {
+                    log::error!(
+                        "OpenCL PCI bus info had unexpected size: {} bytes",
+                        data.len()
+                    );
+                    return None;
+                }
+
+                let pci_info = get_device_pci_bus_info_khr(&data);
+                let pci_id = PciId::new(
+                    pci_info.pci_domain,
+                    pci_info.pci_bus,
+                    pci_info.pci_device,
+                    pci_info.pci_function,
+                );
+                let mut gpu_id = GpuIdSet::new(pci_id);
+                gpu_id.opencl_ordinal_id = Some(device_id);
+                Some((pci_id, gpu_id))
+            })
+            .collect())
     }
     #[cfg(feature = "backend-vulkan")]
-    fn list_vulkan_devices() -> anyhow::Result<BTreeMap<PciId, GpuId>> {
-        todo!()
+    fn list_vulkan_devices() -> anyhow::Result<BTreeMap<PciId, GpuIdSet>> {
+        log::error!("Listing Vulkan devices is not implemented yet!");
+        Err(anyhow::Error::msg(""))
     }
     #[cfg(feature = "backend-hip")]
-    fn list_hip_devices() -> anyhow::Result<BTreeMap<PciId, GpuId>> {
-        todo!()
+    fn list_hip_devices() -> anyhow::Result<BTreeMap<PciId, GpuIdSet>> {
+        log::error!("Listing HIP devices is not implemented yet!");
+        Err(anyhow::Error::msg(""))
     }
 }
 
