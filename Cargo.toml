@@ -1,0 +1,92 @@
+[package]
+name = "cj"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# CPU hashes
+md-5 = "0.11.0"
+sha1 = "0.11.0"
+sha2 = "0.11.0"
+pbkdf2 = "0.13.0"
+bcrypt = "0.19.3"
+scrypt = "0.12.0"
+argon2 = "0.5.3"
+
+# ------
+
+# backends/APIs
+# CubeCL
+cubecl = {version = "0.10.0", optional = true}
+cubecl-opt = {version = "0.10.0", optional = true}
+
+# Vulkano
+vulkano = {version = "0.35.2", optional = true}
+vulkano-shaders = {version = "0.35.0", optional = true}
+
+# CUDA
+cudarc = {version = "0.19.9", optional = true}
+
+# OpenCL
+opencl3 = {version = "0.12.3", optional = true}
+
+# ------
+
+# misc
+# errors
+anyhow = "1.0.104"
+thiserror = "2.0.20"
+
+# time
+humantime = "2.4.0"
+humantime-serde = "1.1.1"
+jiff = "0.2.35"
+
+# serialization
+serde = "1.0.229"
+serde_json = "1.0.151"
+
+# cli
+clap = "4.6.6"
+
+# rand
+rand_core = "0.10.1"
+rand_chacha = "0.10.0"
+
+# ------
+
+# GPU data
+bitflags = "2.13.1"
+bytemuck = "1.25.2"
+
+# ------
+
+# testing/validation
+hex = "0.4.3"
+
+[dev-dependencies]
+static_assertions = "1.1.0"
+serial_test = "4.0.1"
+hex-literal = "1.1.0"
+proptest = "1.11.0"
+
+
+[features]
+default = []
+
+backend-cubecl-cuda = ["dep:cubecl", "cubecl/cuda", "dep:cubecl-opt"]
+backend-cubecl-hip = ["dep:cubecl", "cubecl/hip"]
+backend-cubecl-vulkan = ["dep:cubecl", "cubecl/vulkan"]
+
+backend-cuda = ["dep:cudarc"]
+backend-opencl = ["dep:opencl3"]
+backend-vulkan = ["dep:vulkano", "dep:vulkano-shaders"]
+
+all-backends = [
+    "backend-cubecl-cuda",
+    "backend-cubecl-hip",
+    "backend-cubecl-vulkan",
+    "backend-cuda",
+    "backend-opencl",
+    "backend-vulkan",
+]
