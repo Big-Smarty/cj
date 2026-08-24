@@ -34,6 +34,9 @@ cudarc = {version = "0.19.9", optional = true}
 # OpenCL
 opencl3 = {version = "0.12.3", optional = true}
 
+# HIP
+rocmrc = {version = "0.5.0", optional = true}
+
 # ------
 
 # misc
@@ -78,13 +81,14 @@ proptest = "1.11.0"
 [features]
 default = []
 
-backend-cubecl-cuda = ["dep:cubecl", "cubecl/cuda", "dep:cubecl-opt"]
-backend-cubecl-hip = ["dep:cubecl", "cubecl/hip"]
-backend-cubecl-vulkan = ["dep:cubecl", "cubecl/vulkan"]
+backend-cubecl-cuda = ["dep:cubecl", "cubecl/cuda", "dep:cubecl-opt", "backend-cuda"]
+backend-cubecl-hip = ["dep:cubecl", "cubecl/hip", "backend-hip"]
+backend-cubecl-vulkan = ["dep:cubecl", "cubecl/vulkan", "backend-vulkan"]
 
 backend-cuda = ["dep:cudarc"]
 backend-opencl = ["dep:opencl3"]
 backend-vulkan = ["dep:vulkano", "dep:vulkano-shaders"]
+backend-hip = ["dep:rocmrc"]
 
 all-backends = [
     "backend-cubecl-cuda",
