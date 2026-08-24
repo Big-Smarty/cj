@@ -14,4 +14,5 @@ pub struct Cli {
 pub enum Commands {
     Bench(bench::BenchArgs),
     Devices,
+    Backends,
 }
