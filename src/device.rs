@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use crate::gpu_id_set::GpuIdSet;
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Device {
     gpu_id: GpuIdSet,
     #[cfg(feature = "backend-cuda")]
