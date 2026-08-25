@@ -7,16 +7,14 @@ pub struct PciId {
     pub domain: u32,
     pub bus: u32,
     pub device: u32,
-    pub function: u32,
 }
 
 impl PciId {
-    pub fn new(domain: u32, bus: u32, device: u32, function: u32) -> Self {
+    pub fn new(domain: u32, bus: u32, device: u32) -> Self {
         Self {
             domain,
             bus,
             device,
-            function,
         }
     }
 }
@@ -31,7 +29,7 @@ impl TryFrom<&str> for PciId {
         let (bus, remainder) = remainder
             .split_once(':')
             .ok_or(anyhow::Error::msg("Failed to parse bus ID"))?;
-        let (device, function) = remainder
+        let (device, _) = remainder
             .split_once('.')
             .ok_or(anyhow::Error::msg("Failed to parse device ID"))?;
 
@@ -39,7 +37,6 @@ impl TryFrom<&str> for PciId {
             u32::from_str_radix(domain, 16)?,
             u32::from_str_radix(bus, 16)?,
             u32::from_str_radix(device, 16)?,
-            u32::from_str_radix(function, 16)?,
         ))
     }
 }
@@ -47,8 +44,8 @@ impl TryFrom<&str> for PciId {
 impl Display for PciId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_fmt(format_args!(
-            "{:04x}:{:02x}:{:02x}.{:x}",
-            self.domain, self.bus, self.device, self.function,
+            "{:04x}:{:02x}:{:02x}",
+            self.domain, self.bus, self.device,
         ))
     }
 }
