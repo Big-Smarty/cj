@@ -3,6 +3,7 @@
 use clap::Parser;
 
 mod algorithms;
+mod backend;
 mod backends;
 mod cli;
 mod cracker;
