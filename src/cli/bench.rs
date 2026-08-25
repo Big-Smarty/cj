@@ -9,7 +9,7 @@ use crate::{algorithms, backends::BackendKind};
 #[derive(Args, Debug)]
 pub struct BenchArgs {
     /// Backend to select
-    #[arg(value_enum, long, default_value_t = BackendKind::All)]
+    #[arg(value_enum, long)]
     backend: BackendKind,
 
     /// Algorithm to use

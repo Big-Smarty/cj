@@ -2,7 +2,6 @@ use clap::{ValueEnum, builder::PossibleValue};
 
 #[derive(Debug, Copy, Clone)]
 pub enum BackendKind {
-    All,
     #[cfg(feature = "backend-cuda")]
     NativeCuda,
     #[cfg(feature = "backend-opencl")]
@@ -22,7 +21,6 @@ pub enum BackendKind {
 impl ValueEnum for BackendKind {
     fn value_variants<'a>() -> &'a [Self] {
         &[
-            Self::All,
             #[cfg(feature = "backend-cuda")]
             Self::NativeCuda,
             #[cfg(feature = "backend-opencl")]
@@ -42,7 +40,6 @@ impl ValueEnum for BackendKind {
 
     fn to_possible_value(&self) -> Option<clap::builder::PossibleValue> {
         Some(match self {
-            Self::All => PossibleValue::new("all").help("Benchmark all available backends"),
             #[cfg(feature = "backend-cuda")]
             Self::NativeCuda => PossibleValue::new("native-cuda").help("Benchmark native CUDA"),
             #[cfg(feature = "backend-opencl")]
