@@ -1,7 +1,7 @@
 use clap::{ValueEnum, builder::PossibleValue};
 
-#[derive(Debug, Copy, Clone)]
-pub enum Algorithms {
+#[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Eq, Ord, Hash)]
+pub enum Algorithm {
     Ntlm,
     Md5,
     Sha1,
@@ -12,7 +12,7 @@ pub enum Algorithms {
     Argon2,
 }
 
-impl ValueEnum for Algorithms {
+impl ValueEnum for Algorithm {
     fn value_variants<'a>() -> &'a [Self] {
         &[
             Self::Ntlm,
