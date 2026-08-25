@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{num::NonZero, time::Duration};
 
 use clap::Args;
 use jiff::{Timestamp, Unit};
@@ -18,7 +18,7 @@ pub struct BenchArgs {
 
     /// Batch size
     #[arg(long)]
-    batch_size: usize,
+    batch_size: NonZero<usize>,
 
     /// Warmup time
     #[arg(long, default_value_t = Duration::from_secs(10).into())]
@@ -30,7 +30,7 @@ pub struct BenchArgs {
 
     /// Sample count
     #[arg(long)]
-    sample_count: usize,
+    sample_count: NonZero<usize>,
 
     /// Output file
     #[arg(long, default_value_t = format!("reports/{}.json", Timestamp::now().round(Unit::Second).unwrap().to_string()))]
