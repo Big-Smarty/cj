@@ -7,8 +7,6 @@ pub struct Device {
     gpu_id: GpuIdSet,
     #[cfg(feature = "backend-cuda")]
     cuda_name: Option<String>,
-    #[cfg(feature = "backend-vulkan")]
-    vulkan_name: Option<String>,
     #[cfg(feature = "backend-opencl")]
     opencl_name: Option<String>,
     #[cfg(feature = "backend-hip")]
@@ -21,8 +19,6 @@ impl Device {
             gpu_id,
             #[cfg(feature = "backend-cuda")]
             cuda_name: None,
-            #[cfg(feature = "backend-vulkan")]
-            vulkan_name: None,
             #[cfg(feature = "backend-opencl")]
             opencl_name: None,
             #[cfg(feature = "backend-hip")]
@@ -40,27 +36,6 @@ impl Device {
         Self {
             gpu_id: self.gpu_id,
             cuda_name: Some(name),
-            #[cfg(feature = "backend-vulkan")]
-            vulkan_name: self.vulkan_name.clone(),
-            #[cfg(feature = "backend-opencl")]
-            opencl_name: self.opencl_name.clone(),
-            #[cfg(feature = "backend-hip")]
-            hip_name: self.hip_name.clone(),
-        }
-    }
-
-    #[cfg(feature = "backend-vulkan")]
-    pub fn set_vulkan_name(&mut self, name: String) {
-        self.vulkan_name = Some(name);
-    }
-
-    #[cfg(feature = "backend-vulkan")]
-    pub fn with_vulkan_name(&self, name: String) -> Self {
-        Self {
-            gpu_id: self.gpu_id,
-            #[cfg(feature = "backend-cuda")]
-            cuda_name: self.cuda_name.clone(),
-            vulkan_name: Some(name),
             #[cfg(feature = "backend-opencl")]
             opencl_name: self.opencl_name.clone(),
             #[cfg(feature = "backend-hip")]
@@ -79,8 +54,6 @@ impl Device {
             gpu_id: self.gpu_id,
             #[cfg(feature = "backend-cuda")]
             cuda_name: self.cuda_name.clone(),
-            #[cfg(feature = "backend-vulkan")]
-            vulkan_name: self.vulkan_name.clone(),
             opencl_name: Some(name),
             #[cfg(feature = "backend-hip")]
             hip_name: self.hip_name.clone(),
@@ -98,8 +71,6 @@ impl Device {
             gpu_id: self.gpu_id,
             #[cfg(feature = "backend-cuda")]
             cuda_name: self.cuda_name.clone(),
-            #[cfg(feature = "backend-vulkan")]
-            vulkan_name: self.vulkan_name.clone(),
             #[cfg(feature = "backend-opencl")]
             opencl_name: self.opencl_name.clone(),
             hip_name: Some(name),
@@ -116,9 +87,6 @@ impl Display for Device {
 
         #[cfg(feature = "backend-opencl")]
         out.extend(format!("OpenCL name: {:?}\n", self.opencl_name).chars());
-
-        #[cfg(feature = "backend-vulkan")]
-        out.extend(format!("Vulkan name: {:?}\n", self.vulkan_name).chars());
 
         #[cfg(feature = "backend-hip")]
         out.extend(format!("HIP name: {:?}\n", self.hip_name).chars());

@@ -29,8 +29,6 @@ impl Cracker {
             Self::list_opencl_devices(),
             #[cfg(feature = "backend-hip")]
             Self::list_hip_devices(),
-            #[cfg(feature = "backend-vulkan")]
-            Self::list_vulkan_devices(),
         ];
 
         let mut joined: BTreeMap<PciId, GpuIdSet> = BTreeMap::new();
@@ -54,10 +52,6 @@ impl Cracker {
                 #[cfg(feature = "backend-hip")]
                 if entry.hip_ordinal_id.is_none() && discovered.hip_ordinal_id.is_some() {
                     entry.hip_ordinal_id = discovered.hip_ordinal_id;
-                }
-                #[cfg(feature = "backend-vulkan")]
-                if entry.vulkan_ordinal_id.is_none() && discovered.vulkan_ordinal_id.is_some() {
-                    entry.vulkan_ordinal_id = discovered.vulkan_ordinal_id;
                 }
             }
         }
@@ -90,7 +84,6 @@ impl Cracker {
                 let gpu_id = GpuIdSet {
                     cuda_ordinal_id: Some(ordinal),
                     opencl_ordinal_id: None,
-                    vulkan_ordinal_id: None,
                     hip_ordinal_id: None,
                     pci_id: id,
                 };
@@ -142,64 +135,6 @@ impl Cracker {
                 let pci_id = PciId::new(pci_info.pci_domain, pci_info.pci_bus, pci_info.pci_device);
                 let mut gpu_id = GpuIdSet::new(pci_id);
                 gpu_id.opencl_ordinal_id = Some(device_id);
-                Some((pci_id, gpu_id))
-            })
-            .collect())
-    }
-    #[cfg(feature = "backend-vulkan")]
-    fn list_vulkan_devices() -> anyhow::Result<BTreeMap<PciId, GpuIdSet>> {
-        use std::sync::Arc;
-
-        use vulkano::{
-            device::physical::PhysicalDevice,
-            instance::{Instance, InstanceCreateInfo},
-            library::VulkanLibrary,
-        };
-        let vulkan_library = match VulkanLibrary::new() {
-            Ok(l) => l,
-            Err(e) => {
-                error!("Failed to create Vulkan library: {e}");
-                return Err(anyhow::Error::msg(format!(
-                    "Failed to create Vulkan library: {e}"
-                )));
-            }
-        };
-
-        let instance = match Instance::new(vulkan_library, InstanceCreateInfo::default()) {
-            Ok(i) => i,
-            Err(e) => {
-                error!("Failed to create Vulkan instance: {e}");
-                return Err(anyhow::Error::msg(format!(
-                    "Failed to create Vulkan instance: {e}"
-                )));
-            }
-        };
-
-        let physical_devices = match instance.enumerate_physical_devices() {
-            Ok(pd) => pd,
-            Err(e) => {
-                error!("Failed to enumerate Vulkan physical devices: {e}");
-                return Err(anyhow::Error::msg(format!(
-                    "Failed to enumerate Vulkan physical devices: {e}"
-                )));
-            }
-        }
-        .collect::<Vec<Arc<PhysicalDevice>>>();
-
-        Ok(physical_devices
-            .iter()
-            .enumerate()
-            .filter_map(|(ordinal, pd)| {
-                let properties = pd.properties();
-                let pci_id = PciId::new(
-                    properties.pci_domain?,
-                    properties.pci_bus?,
-                    properties.pci_device?,
-                );
-
-                let mut gpu_id = GpuIdSet::new(pci_id);
-                gpu_id.vulkan_ordinal_id = Some(ordinal);
-
                 Some((pci_id, gpu_id))
             })
             .collect())
