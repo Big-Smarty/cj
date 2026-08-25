@@ -24,10 +24,6 @@ argon2 = "0.5.3"
 cubecl = {version = "0.10.0", optional = true}
 cubecl-opt = {version = "0.10.0", optional = true}
 
-# Vulkano
-vulkano = {version = "0.35.2", optional = true}
-vulkano-shaders = {version = "0.35.0", optional = true}
-
 # CUDA
 cudarc = {version = "0.19.9", optional = true}
 
@@ -82,24 +78,19 @@ serial_test = "4.0.1"
 hex-literal = "1.1.0"
 proptest = "1.11.0"
 
-
 [features]
 default = []
 
-backend-cubecl-cuda = ["dep:cubecl", "cubecl/cuda", "dep:cubecl-opt", "backend-cuda"]
-backend-cubecl-hip = ["dep:cubecl", "cubecl/hip", "backend-hip"]
-backend-cubecl-vulkan = ["dep:cubecl", "cubecl/vulkan", "backend-vulkan"]
+backend-cubecl-cuda = ["dep:cubecl", "cubecl/cuda", "dep:cubecl-opt", "dep:cudarc"]
+backend-cubecl-hip = ["dep:cubecl", "cubecl/hip", "dep:rocmrc"]
 
 backend-cuda = ["dep:cudarc"]
 backend-opencl = ["dep:opencl3", "dep:cl3"]
-backend-vulkan = ["dep:vulkano", "dep:vulkano-shaders"]
 backend-hip = ["dep:rocmrc"]
 
 all-backends = [
     "backend-cubecl-cuda",
     "backend-cubecl-hip",
-    "backend-cubecl-vulkan",
     "backend-cuda",
     "backend-opencl",
-    "backend-vulkan",
 ]
