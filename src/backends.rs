@@ -1,18 +1,5 @@
 use clap::{ValueEnum, builder::PossibleValue};
 
-#[cfg(feature = "backend-cuda")]
-pub struct NativeCudaBackend;
-#[cfg(feature = "backend-opencl")]
-pub struct NativeOpenClBackend;
-#[cfg(feature = "backend-vulkan")]
-pub struct NativeVulkanBackend;
-#[cfg(feature = "backend-cubecl-cuda")]
-pub struct CubeClCudaBackend;
-#[cfg(feature = "backend-cubecl-hip")]
-pub struct CubeClHipBackend;
-#[cfg(feature = "backend-cubecl-vulkan")]
-pub struct CubeClVulkanBackend;
-
 #[derive(Debug, Copy, Clone)]
 pub enum BackendKind {
     All,
@@ -22,6 +9,8 @@ pub enum BackendKind {
     NativeOpenCl,
     #[cfg(feature = "backend-vulkan")]
     NativeVulkan,
+    #[cfg(feature = "backend-hip")]
+    NativeHip,
     #[cfg(feature = "backend-cubecl-cuda")]
     CubeClCuda,
     #[cfg(feature = "backend-cubecl-hip")]
@@ -40,6 +29,8 @@ impl ValueEnum for BackendKind {
             Self::NativeOpenCl,
             #[cfg(feature = "backend-vulkan")]
             Self::NativeVulkan,
+            #[cfg(feature = "backend-hip")]
+            Self::NativeHip,
             #[cfg(feature = "backend-cubecl-cuda")]
             Self::CubeClCuda,
             #[cfg(feature = "backend-cubecl-hip")]
@@ -62,6 +53,8 @@ impl ValueEnum for BackendKind {
             Self::NativeVulkan => {
                 PossibleValue::new("native-vulkan").help("Benchmark native Vulkan")
             }
+            #[cfg(feature = "backend-hip")]
+            Self::NativeHip => PossibleValue::new("native-hip").help("Benchmark native HIP"),
             #[cfg(feature = "backend-cubecl-cuda")]
             Self::CubeClCuda => PossibleValue::new("cubecl-cuda").help("Benchmark CubeCL CUDA"),
             #[cfg(feature = "backend-cubecl-hip")]
