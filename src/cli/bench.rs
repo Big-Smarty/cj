@@ -3,14 +3,14 @@ use std::time::Duration;
 use clap::Args;
 use jiff::{Timestamp, Unit};
 
-use crate::{algorithms, backends::Backends};
+use crate::{algorithms, backends::BackendKind};
 
 /// CJ is a crackjack worker with a cli and no network communication.
 #[derive(Args, Debug)]
 pub struct BenchArgs {
     /// Backend to select
-    #[arg(value_enum, long, default_value_t = Backends::All)]
-    backend: Backends,
+    #[arg(value_enum, long, default_value_t = BackendKind::All)]
+    backend: BackendKind,
 
     /// Algorithm to use
     #[arg(value_enum, long)]

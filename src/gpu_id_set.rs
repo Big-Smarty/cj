@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 #[cfg(feature = "backend-opencl")]
 use cl3::ext::cl_device_id;
 
@@ -29,5 +31,25 @@ impl GpuIdSet {
             hip_ordinal_id: None,
             pci_id,
         }
+    }
+}
+
+impl Display for GpuIdSet {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut out = format!("PCI ID: {}\n", self.pci_id);
+
+        #[cfg(feature = "backend-cuda")]
+        out.extend(format!("CUDA ordinal: {:?}\n", self.cuda_ordinal_id).chars());
+
+        #[cfg(feature = "backend-opencl")]
+        out.extend(format!("OpenCL ordinal: {:?}\n", self.opencl_ordinal_id).chars());
+
+        #[cfg(feature = "backend-vulkan")]
+        out.extend(format!("Vulkan ordinal: {:?}\n", self.vulkan_ordinal_id).chars());
+
+        #[cfg(feature = "backend-hip")]
+        out.extend(format!("HIP ordinal: {:?}\n", self.hip_ordinal_id).chars());
+
+        f.write_str(&out)
     }
 }
