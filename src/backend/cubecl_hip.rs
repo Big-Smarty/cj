@@ -1,3 +1,5 @@
+// DISABLED/UNUSED FOR NOW: THE MAIN DEV IMPLEMENTATION OF BACKENDS IS OPENCL
+
 use cubecl::{device::DeviceId, hip::HipRuntime};
 
 use crate::{backend::Backend, backends::BackendKind};
