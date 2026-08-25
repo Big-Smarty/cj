@@ -1,4 +1,4 @@
-use cubecl::{client::ComputeClient, device::DeviceId};
+use cubecl::{device::DeviceId, wgpu::WgpuRuntime};
 
 use crate::{backend::Backend, backends::BackendKind};
 
@@ -7,7 +7,7 @@ pub struct CubeClVulkanBackend;
 impl Backend for CubeClVulkanBackend {
     type DeviceLocator = DeviceId;
 
-    type Context = ComputeClient<cubecl::wgpu::WgpuRuntime>;
+    type Context = WgpuRuntime;
 
     type Queue = ();
 

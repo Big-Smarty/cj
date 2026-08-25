@@ -1,4 +1,4 @@
-use cubecl::{client::ComputeClient, device::DeviceId};
+use cubecl::{device::DeviceId, hip::HipRuntime};
 
 use crate::{backend::Backend, backends::BackendKind};
 
@@ -7,7 +7,7 @@ pub struct CubeClHipBackend;
 impl Backend for CubeClHipBackend {
     type DeviceLocator = DeviceId;
 
-    type Context = ComputeClient<cubecl::hip::HipRuntime>;
+    type Context = HipRuntime;
 
     type Queue = ();
 
