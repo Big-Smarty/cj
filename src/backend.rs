@@ -1,4 +1,6 @@
-use crate::backends::BackendKind;
+use std::collections::BTreeMap;
+
+use crate::{algorithms::Algorithm, backends::BackendKind};
 
 //#[cfg(feature = "backend-cuda")]
 //pub mod native_cuda;
@@ -18,6 +20,7 @@ pub mod native_opencl;
 pub trait Backend: Sized + 'static {
     type Session;
     type Module;
+    type ModuleStorage = BTreeMap<Algorithm, Self::Module>;
     type InputBuffer;
     type OutputBuffer;
 
