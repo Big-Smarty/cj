@@ -1,5 +1,7 @@
 //! CJ is a crackjack worker with a cli and no network communication.
 
+#![feature(associated_type_defaults)]
+
 use clap::Parser;
 
 mod algorithms;
