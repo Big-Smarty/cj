@@ -21,10 +21,8 @@ Planned backends include:
 
 - CubeCL CUDA
 - CubeCL HIP
-- CubeCL Vulkan
 - Native CUDA using `cudarc`
 - Native OpenCL using `opencl3`
-- Native Vulkan using `vulkano`
 
 Backend support is controlled through Cargo features so that `cj` can be built without requiring every GPU SDK.
 
@@ -61,7 +59,7 @@ Build selected backends:
 
 ```shell
 cargo build --release \
-  --features backend-cuda,backend-opencl,backend-vulkan
+  --features backend-cuda,backend-opencl
 ```
 
 The required GPU drivers and development libraries must be installed for each enabled backend.
@@ -119,7 +117,7 @@ Run with an explicitly selected backend:
 
 ```shell
 cj crack \
-  --backend cubecl-vulkan \
+  --backend cubecl-hip \
   --algorithm sha256 \
   --target-file hashes.txt \
   --wordlist candidates.txt
