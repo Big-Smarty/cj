@@ -6,6 +6,7 @@ mod algorithms;
 mod backends;
 mod cli;
 mod cracker;
+mod device;
 mod engine;
 mod gpu_id_set;
 mod pci_id;
