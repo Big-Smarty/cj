@@ -3,6 +3,8 @@ use std::ffi::CStr;
 use std::ffi::c_int;
 use std::{collections::BTreeMap, ops::DerefMut};
 
+use spdlog::prelude::*;
+
 use crate::{engine::Engine, gpu_id_set::GpuIdSet, pci_id::PciId};
 
 pub struct Cracker {
@@ -66,13 +68,13 @@ impl Cracker {
     fn list_cuda_devices() -> anyhow::Result<BTreeMap<PciId, GpuIdSet>> {
         use cudarc::driver::{CudaContext, sys::is_culib_present};
         if !unsafe { is_culib_present() } {
-            log::error!("no CUDA libraries found");
+            error!("no CUDA libraries found");
             return Err(anyhow::Error::msg("no CUDA libraries found"));
         }
         let device_count = match CudaContext::device_count() {
             Ok(count) => count as usize,
             Err(error) => {
-                log::error!("no CUDA devices available: {error}");
+                error!("no CUDA devices available: {error}");
                 return Err(anyhow::Error::msg(format!(
                     "no CUDA devices available: {error}"
                 )));
@@ -108,7 +110,7 @@ impl Cracker {
         let platforms = match get_platforms() {
             Ok(p) => p,
             Err(e) => {
-                log::error!("Failed to get OpenCL platforms: {e}");
+                error!("Failed to get OpenCL platforms: {e}");
                 return Err(anyhow::Error::msg(format!(
                     "Failed to get OpenCL platforms: {e}"
                 )));
@@ -120,7 +122,7 @@ impl Cracker {
             .flat_map(|platform| match platform.get_devices(CL_DEVICE_TYPE_GPU) {
                 Ok(device_ids) => device_ids,
                 Err(e) => {
-                    log::error!("Failed to get OpenCL device IDs: {e}");
+                    error!("Failed to get OpenCL device IDs: {e}");
                     Vec::new()
                 }
             })
@@ -129,7 +131,7 @@ impl Cracker {
                 let data = device.get_data(CL_DEVICE_PCI_BUS_INFO_KHR).ok()?;
 
                 if data.len() != size_of::<cl_device_pci_bus_info_khr>() {
-                    log::error!(
+                    error!(
                         "OpenCL PCI bus info had unexpected size: {} bytes",
                         data.len()
                     );
@@ -151,12 +153,66 @@ impl Cracker {
     }
     #[cfg(feature = "backend-vulkan")]
     fn list_vulkan_devices() -> anyhow::Result<BTreeMap<PciId, GpuIdSet>> {
-        log::error!("Listing Vulkan devices is not implemented yet!");
-        Err(anyhow::Error::msg(""))
+        use std::sync::Arc;
+
+        use vulkano::{
+            device::physical::PhysicalDevice,
+            instance::{Instance, InstanceCreateInfo},
+            library::VulkanLibrary,
+        };
+        let vulkan_library = match VulkanLibrary::new() {
+            Ok(l) => l,
+            Err(e) => {
+                error!("Failed to create Vulkan library: {e}");
+                return Err(anyhow::Error::msg(format!(
+                    "Failed to create Vulkan library: {e}"
+                )));
+            }
+        };
+
+        let instance = match Instance::new(vulkan_library, InstanceCreateInfo::default()) {
+            Ok(i) => i,
+            Err(e) => {
+                error!("Failed to create Vulkan instance: {e}");
+                return Err(anyhow::Error::msg(format!(
+                    "Failed to create Vulkan instance: {e}"
+                )));
+            }
+        };
+
+        let physical_devices = match instance.enumerate_physical_devices() {
+            Ok(pd) => pd,
+            Err(e) => {
+                error!("Failed to enumerate Vulkan physical devices: {e}");
+                return Err(anyhow::Error::msg(format!(
+                    "Failed to enumerate Vulkan physical devices: {e}"
+                )));
+            }
+        }
+        .collect::<Vec<Arc<PhysicalDevice>>>();
+
+        Ok(physical_devices
+            .iter()
+            .enumerate()
+            .filter_map(|(ordinal, pd)| {
+                let properties = pd.properties();
+                let pci_id = PciId::new(
+                    properties.pci_domain?,
+                    properties.pci_bus?,
+                    properties.pci_device?,
+                    properties.pci_function?,
+                );
+
+                let mut gpu_id = GpuIdSet::new(pci_id);
+                gpu_id.vulkan_ordinal_id = Some(ordinal);
+
+                Some((pci_id, gpu_id))
+            })
+            .collect())
     }
     #[cfg(feature = "backend-hip")]
     fn list_hip_devices() -> anyhow::Result<BTreeMap<PciId, GpuIdSet>> {
-        log::error!("Listing HIP devices is not implemented yet!");
+        error!("Listing HIP devices is not implemented yet!");
         Err(anyhow::Error::msg(""))
     }
 }
@@ -180,15 +236,15 @@ fn cuda_device_pci_id(device: &CudaContext) -> anyhow::Result<PciId> {
             PciId::try_from(bus_id)
         }
         cudarc::runtime::sys::cudaError::cudaErrorInvalidValue => {
-            log::error!("cuda list IDs: invalid value");
+            error!("cuda list IDs: invalid value");
             Err(anyhow::Error::msg("CUDA list IDs: invalid value"))
         }
         cudarc::runtime::sys::cudaError::cudaErrorInvalidDevice => {
-            log::error!("cuda list IDs: invalid device");
+            error!("cuda list IDs: invalid device");
             Err(anyhow::Error::msg("CUDA list IDs: invalid device"))
         }
         error => {
-            log::error!("cuda list IDs failed: {error:?}");
+            error!("cuda list IDs failed: {error:?}");
             Err(anyhow::Error::msg(format!(
                 "CUDA list IDs failed: {error:?}"
             )))
