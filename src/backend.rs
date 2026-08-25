@@ -31,16 +31,28 @@ pub trait Backend: Sized + 'static {
 
     const KIND: BackendKind;
 
-    fn create_context(locator: &Self::DeviceLocator);
-    fn create_queue(context: &Self::Context);
-    fn compile_module(context: &Self::Context, queue: &Self::Queue, kernel: ());
-    fn create_input_buffer(context: &Self::Context, queue: &Self::Queue, size: usize);
-    fn create_output_buffer(context: &Self::Context, queue: &Self::Queue, size: usize);
+    fn create_context(locator: &Self::DeviceLocator) -> anyhow::Result<Self::Context>;
+    fn create_queue(context: &Self::Context) -> anyhow::Result<Self::Queue>;
+    fn compile_module(
+        context: &Self::Context,
+        queue: &Self::Queue,
+        kernel: (),
+    ) -> anyhow::Result<Self::Module>;
+    fn create_input_buffer(
+        context: &Self::Context,
+        queue: &Self::Queue,
+        size: usize,
+    ) -> anyhow::Result<Self::InputBuffer>;
+    fn create_output_buffer(
+        context: &Self::Context,
+        queue: &Self::Queue,
+        size: usize,
+    ) -> anyhow::Result<Self::OutputBuffer>;
     fn bench(
         queue: &Self::Queue,
         module: &Self::Module,
         input: &Self::InputBuffer,
         output: &mut Self::OutputBuffer,
         bench_info: (),
-    );
+    ) -> anyhow::Result<()>;
 }
