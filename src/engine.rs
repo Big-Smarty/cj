@@ -16,9 +16,6 @@ pub struct Engine<B>
 where
     B: Backend,
 {
-    device_locator: B::DeviceLocator,
-    context: B::Context,
-    queue: B::Queue,
     _backend: PhantomData<B>,
 }
 
