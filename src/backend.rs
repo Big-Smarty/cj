@@ -27,4 +27,11 @@ pub trait Backend: Sized + 'static {
     type Queue;
 
     const KIND: BackendKind;
+
+    fn create_context(&mut self);
+    fn create_queue(&mut self);
+    fn compile_module(&mut self);
+    fn create_input_buffer(&mut self);
+    fn create_output_buffer(&mut self);
+    fn bench(&mut self);
 }
