@@ -1,25 +1,25 @@
 use crate::backends::BackendKind;
 
 #[cfg(feature = "backend-cuda")]
-mod native_cuda;
+pub mod native_cuda;
 
 #[cfg(feature = "backend-opencl")]
-mod native_opencl;
+pub mod native_opencl;
 
 #[cfg(feature = "backend-vulkan")]
-mod native_vulkan;
+pub mod native_vulkan;
 
 #[cfg(feature = "backend-hip")]
-mod native_hip;
+pub mod native_hip;
 
 #[cfg(feature = "backend-cubecl-cuda")]
-mod cubecl_cuda;
+pub mod cubecl_cuda;
 
 #[cfg(feature = "backend-cubecl-hip")]
-mod cubecl_hip;
+pub mod cubecl_hip;
 
 #[cfg(feature = "backend-cubecl-vulkan")]
-mod cubecl_vulkan;
+pub mod cubecl_vulkan;
 
 pub trait Backend: Sized + 'static {
     type DeviceLocator;
