@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-#[cfg(feature = "backend-cuda")]
+#[cfg(any(feature = "backend-cuda", feature = "backend-cubecl-cuda"))]
 use std::ffi::CStr;
 use std::ffi::c_int;
 
@@ -23,11 +23,11 @@ impl Cracker {
 
     fn discover() -> BTreeMap<PciId, GpuIdSet> {
         let maps = vec![
-            #[cfg(feature = "backend-cuda")]
+            #[cfg(any(feature = "backend-cuda", feature = "backend-cubecl-cuda"))]
             Self::list_cuda_devices(),
             #[cfg(feature = "backend-opencl")]
             Self::list_opencl_devices(),
-            #[cfg(feature = "backend-hip")]
+            #[cfg(any(feature = "backend-hip", feature = "backend-cubecl-hip"))]
             Self::list_hip_devices(),
         ];
 
@@ -41,7 +41,7 @@ impl Cracker {
                 let entry = joined
                     .entry(*pci_id)
                     .or_insert_with(|| GpuIdSet::new(*pci_id));
-                #[cfg(feature = "backend-cuda")]
+                #[cfg(any(feature = "backend-cuda", feature = "backend-cubecl-cuda"))]
                 if entry.cuda_ordinal_id.is_none() && discovered.cuda_ordinal_id.is_some() {
                     entry.cuda_ordinal_id = discovered.cuda_ordinal_id;
                 }
@@ -49,7 +49,7 @@ impl Cracker {
                 if entry.opencl_ordinal_id.is_none() && discovered.opencl_ordinal_id.is_some() {
                     entry.opencl_ordinal_id = discovered.opencl_ordinal_id;
                 }
-                #[cfg(feature = "backend-hip")]
+                #[cfg(any(feature = "backend-hip", feature = "backend-cubecl-hip"))]
                 if entry.hip_ordinal_id.is_none() && discovered.hip_ordinal_id.is_some() {
                     entry.hip_ordinal_id = discovered.hip_ordinal_id;
                 }
@@ -58,7 +58,7 @@ impl Cracker {
         joined
     }
 
-    #[cfg(feature = "backend-cuda")]
+    #[cfg(any(feature = "backend-cuda", feature = "backend-cubecl-cuda"))]
     fn list_cuda_devices() -> anyhow::Result<BTreeMap<PciId, GpuIdSet>> {
         use cudarc::driver::{CudaContext, sys::is_culib_present};
         if !unsafe { is_culib_present() } {
@@ -139,7 +139,7 @@ impl Cracker {
             })
             .collect())
     }
-    #[cfg(feature = "backend-hip")]
+    #[cfg(any(feature = "backend-hip", feature = "backend-cubecl-hip"))]
     fn list_hip_devices() -> anyhow::Result<BTreeMap<PciId, GpuIdSet>> {
         use rocmrc::HipContext;
 
@@ -173,10 +173,10 @@ impl Cracker {
     }
 }
 
-#[cfg(feature = "backend-cuda")]
+#[cfg(any(feature = "backend-cuda", feature = "backend-cubecl-cuda"))]
 use cudarc::{driver::CudaContext, runtime::sys::cudaDeviceGetPCIBusId};
 
-#[cfg(feature = "backend-cuda")]
+#[cfg(any(feature = "backend-cuda", feature = "backend-cubecl-cuda"))]
 fn cuda_device_pci_id(device: &CudaContext) -> anyhow::Result<PciId> {
     let mut bus_id = [0_i8; 13];
 
