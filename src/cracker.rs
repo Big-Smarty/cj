@@ -1,7 +1,7 @@
+use std::collections::BTreeMap;
 #[cfg(feature = "backend-cuda")]
 use std::ffi::CStr;
 use std::ffi::c_int;
-use std::{collections::BTreeMap, ops::DerefMut};
 
 use spdlog::prelude::*;
 
@@ -139,12 +139,7 @@ impl Cracker {
                 }
 
                 let pci_info = get_device_pci_bus_info_khr(&data);
-                let pci_id = PciId::new(
-                    pci_info.pci_domain,
-                    pci_info.pci_bus,
-                    pci_info.pci_device,
-                    pci_info.pci_function,
-                );
+                let pci_id = PciId::new(pci_info.pci_domain, pci_info.pci_bus, pci_info.pci_device);
                 let mut gpu_id = GpuIdSet::new(pci_id);
                 gpu_id.opencl_ordinal_id = Some(device_id);
                 Some((pci_id, gpu_id))
@@ -200,7 +195,6 @@ impl Cracker {
                     properties.pci_domain?,
                     properties.pci_bus?,
                     properties.pci_device?,
-                    properties.pci_function?,
                 );
 
                 let mut gpu_id = GpuIdSet::new(pci_id);
@@ -212,8 +206,35 @@ impl Cracker {
     }
     #[cfg(feature = "backend-hip")]
     fn list_hip_devices() -> anyhow::Result<BTreeMap<PciId, GpuIdSet>> {
-        error!("Listing HIP devices is not implemented yet!");
-        Err(anyhow::Error::msg(""))
+        use rocmrc::HipContext;
+
+        let device_count = match HipContext::device_count() {
+            Ok(dc) => dc as usize,
+            Err(e) => {
+                error!("Failed to get HIP device count: {e}");
+                return Err(anyhow::Error::msg(format!(
+                    "Failed to get HIP device count: {e}"
+                )));
+            }
+        };
+
+        Ok((0..device_count)
+            .filter_map(|i| {
+                let context = HipContext::new(i).ok()?;
+                let properties = context.properties().ok()?;
+                let pci_id = PciId::new(
+                    properties.pciDomainID as u32,
+                    properties.pciBusID as u32,
+                    properties.pciDeviceID as u32,
+                );
+
+                let mut gpu_id = GpuIdSet::new(pci_id);
+
+                gpu_id.hip_ordinal_id = Some(context.ordinal());
+
+                Some((pci_id, gpu_id))
+            })
+            .collect())
     }
 }
 
