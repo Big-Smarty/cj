@@ -14,7 +14,7 @@ pub struct BenchArgs {
 
     /// Algorithm to use
     #[arg(value_enum, long)]
-    algorithm: algorithms::Algorithms,
+    algorithm: algorithms::Algorithm,
 
     /// Batch size
     #[arg(long)]
