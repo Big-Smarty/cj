@@ -5,11 +5,11 @@ use std::ffi::c_int;
 
 use spdlog::prelude::*;
 
-use crate::{engine::Engine, gpu_id_set::GpuIdSet, pci_id::PciId};
+use crate::{device::Device, gpu_id_set::GpuIdSet, pci_id::PciId};
 
 pub struct Cracker {
     pub gpu_ids: BTreeMap<PciId, GpuIdSet>,
-    pub engines: Vec<Engine>,
+    pub devices: Vec<Device>,
 }
 
 impl Cracker {
@@ -17,7 +17,7 @@ impl Cracker {
         let gpu_ids = Self::discover();
         Ok(Self {
             gpu_ids,
-            engines: Vec::new(),
+            devices: Vec::new(),
         })
     }
 
