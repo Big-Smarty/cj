@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::{gpu_id_set::GpuIdSet, pci_id::PciId};
+use crate::gpu_id_set::GpuIdSet;
 
 #[derive(Clone, Debug)]
 pub struct Device {
