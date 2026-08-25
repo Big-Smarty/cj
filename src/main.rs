@@ -5,9 +5,14 @@ use clap::Parser;
 mod algorithms;
 mod backends;
 mod cli;
+mod cracker;
 mod engine;
+mod gpu_id_set;
+mod pci_id;
 
 fn main() {
+    spdlog::default_logger().set_level_filter(spdlog::LevelFilter::All);
+
     let cli = cli::Cli::parse();
 
     match &cli.command {
